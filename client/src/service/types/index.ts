@@ -26,6 +26,11 @@ export interface Post {
   id: number;
   title: string;
   body: string;
+
+  // NOVA FEATURE
+  likes: number;
+  dislikes: number;
+
   liked: boolean;
 }
 
