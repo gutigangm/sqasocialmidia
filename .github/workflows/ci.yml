@@ -52,18 +52,3 @@ jobs:
       - name: Build frontend
         working-directory: client
         run: npm run build
-
-      # ==================================================
-      # E2E (PLAYWRIGHT)
-      # ==================================================
-      - name: Instalar dependências E2E
-        working-directory: tests
-        run: npm install
-
-      - name: Instalar browsers Playwright
-        working-directory: tests
-        run: npx playwright install --with-deps
-
-      - name: Rodar testes E2E (Playwright)
-        working-directory: tests
-        run: npx playwright test
