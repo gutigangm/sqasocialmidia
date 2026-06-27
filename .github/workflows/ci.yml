@@ -9,6 +9,20 @@ jobs:
   tests:
     runs-on: ubuntu-latest
 
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: demo
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -uroot -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
       # ---------------- CHECKOUT ----------------
       - name: Checkout do código
@@ -63,6 +77,18 @@ jobs:
       - name: Instalar browsers Playwright
         working-directory: tests
         run: npx playwright install --with-deps
+
+      # ==================================================
+      # WAIT MYSQL
+      # ==================================================
+      - name: Esperar MySQL
+        run: |
+          for i in {1..30}; do
+            mysqladmin ping -h127.0.0.1 -uroot -proot && echo "MySQL UP!" && exit 0
+            echo "Aguardando MySQL..."
+            sleep 5
+          done
+          exit 1
 
       # ==================================================
       # SUBIR API
