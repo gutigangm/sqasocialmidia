@@ -9,20 +9,6 @@ jobs:
   tests:
     runs-on: ubuntu-latest
 
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: demo
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping -h localhost -uroot -proot"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
     steps:
       # ---------------- CHECKOUT ----------------
       - name: Checkout do código
@@ -50,7 +36,7 @@ jobs:
 
       - name: Rodar testes backend
         working-directory: api
-        run: ./mvnw test
+        run: ./mvnw test -Dspring-boot.run.profiles=test
 
       # ==================================================
       # FRONTEND (NEXT.JS)
@@ -78,70 +64,6 @@ jobs:
         working-directory: tests
         run: npx playwright install --with-deps
 
-      # ==================================================
-      # WAIT MYSQL
-      # ==================================================
-      - name: Esperar MySQL
-        run: |
-          for i in {1..30}; do
-            mysqladmin ping -h127.0.0.1 -uroot -proot && echo "MySQL UP!" && exit 0
-            echo "Aguardando MySQL..."
-            sleep 5
-          done
-          exit 1
-
-      # ==================================================
-      # SUBIR API
-      # ==================================================
-      - name: Iniciar API
-        working-directory: api
-        run: ./mvnw spring-boot:run -Dspring-boot.run.profiles=test > api.log 2>&1 &
-
-      # ==================================================
-      # SUBIR FRONTEND
-      # ==================================================
-      - name: Iniciar frontend
-        working-directory: client
-        run: npm run dev > client.log 2>&1 &
-
-      # ==================================================
-      # WAIT ROBUSTO PARA API
-      # ==================================================
-      - name: Aguardar API subir
-        run: |
-          for i in {1..40}; do
-            curl -s http://127.0.0.1:8080 && echo "API UP!" && exit 0
-            echo "Aguardando API..."
-            sleep 3
-          done
-          echo "API NÃO SUBIU" && cat api/api.log || true && exit 1
-
-      # ==================================================
-      # WAIT FRONTEND
-      # ==================================================
-      - name: Aguardar frontend subir
-        run: |
-          for i in {1..40}; do
-            curl -s http://localhost:3000 && echo "FRONTEND UP!" && exit 0
-            echo "Aguardando frontend..."
-            sleep 3
-          done
-          echo "FRONTEND NÃO SUBIU" && cat client/client.log || true && exit 1
-
-      # ==================================================
-      # PLAYWRIGHT TESTS
-      # ==================================================
       - name: Rodar testes E2E (Playwright)
         working-directory: tests
         run: npx playwright test
-
-      # ==================================================
-      # DEBUG (só se falhar)
-      # ==================================================
-      - name: Mostrar logs se falhar
-        if: failure()
-        run: |
-          echo "===== API LOG ====="
-          cat api/api.log || true
-          echo "===== CLIENT LOG ====="
-          cat client/client.log || true
