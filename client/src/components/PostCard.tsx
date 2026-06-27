@@ -24,7 +24,9 @@ export default function PostCard({
     }
 
     setIsLoading(true);
+
     const previousLiked = liked;
+
     setLiked(!liked);
 
     try {
@@ -77,6 +79,20 @@ export default function PostCard({
         {post.body}
       </p>
 
+      {/* NOVA FEATURE */}
+      <div
+        style={{
+          display: "flex",
+          gap: "1.5rem",
+          marginBottom: "1rem",
+          color: "var(--foreground)",
+          fontWeight: "500",
+        }}
+      >
+        <span>👍 {post.likes}</span>
+        <span>👎 {post.dislikes}</span>
+      </div>
+
       <div
         style={{
           display: "flex",
@@ -111,8 +127,13 @@ export default function PostCard({
             e.currentTarget.style.transform = "scale(1)";
           }}
         >
-          <span style={{ fontSize: "1.25rem" }}>{liked ? "❤️" : "🤍"}</span>
-          <span>{isLoading ? "..." : liked ? "Curtido" : "Curtir"}</span>
+          <span style={{ fontSize: "1.25rem" }}>
+            {liked ? "❤️" : "🤍"}
+          </span>
+
+          <span>
+            {isLoading ? "..." : liked ? "Curtido" : "Curtir"}
+          </span>
         </button>
       </div>
     </div>

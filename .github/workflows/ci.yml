@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ---------------- CHECKOUT ----------------
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      # ---------------- JAVA ----------------
+      - name: Configurar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      # ---------------- NODE ----------------
+      - name: Configurar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # ==================================================
+      # BACKEND (SPRING BOOT)
+      # ==================================================
+      - name: Preparar backend
+        working-directory: api
+        run: chmod +x mvnw
+
+      - name: Rodar testes backend
+        working-directory: api
+        run: ./mvnw test -Dspring-boot.run.profiles=test
+
+      # ==================================================
+      # FRONTEND (NEXT.JS)
+      # ==================================================
+      - name: Instalar dependências frontend
+        working-directory: client
+        run: npm install
+
+      - name: Rodar testes frontend
+        working-directory: client
+        run: npm test -- --watchAll=false
+
+      - name: Build frontend
+        working-directory: client
+        run: npm run build
