@@ -28,7 +28,7 @@ jobs:
           node-version: 20
 
       # ==================================================
-      # BACKEND (API SPRING)
+      # BACKEND (SPRING BOOT)
       # ==================================================
       - name: Preparar backend
         working-directory: api
@@ -39,7 +39,7 @@ jobs:
         run: ./mvnw test
 
       # ==================================================
-      # FRONTEND (CLIENT - NEXT.JS)
+      # FRONTEND (NEXT.JS)
       # ==================================================
       - name: Instalar dependências frontend
         working-directory: client
@@ -54,7 +54,7 @@ jobs:
         run: npm run build
 
       # ==================================================
-      # E2E (PLAYWRIGHT - /tests)
+      # E2E (PLAYWRIGHT)
       # ==================================================
       - name: Instalar dependências E2E
         working-directory: tests
@@ -65,18 +65,21 @@ jobs:
         run: npx playwright install --with-deps
 
       # ==================================================
-      # SUBIR APLICAÇÃO
+      # SUBIR API
       # ==================================================
       - name: Iniciar API
         working-directory: api
-        run: ./mvnw spring-boot:run > api.log 2>&1 &
+        run: ./mvnw spring-boot:run -Dspring-boot.run.profiles=test > api.log 2>&1 &
 
+      # ==================================================
+      # SUBIR FRONTEND
+      # ==================================================
       - name: Iniciar frontend
         working-directory: client
         run: npm run dev > client.log 2>&1 &
 
       # ==================================================
-      # WAIT ROBUSTO (NÃO SÓ SLEEP)
+      # WAIT ROBUSTO PARA API
       # ==================================================
       - name: Aguardar API subir
         run: |
@@ -85,8 +88,11 @@ jobs:
             echo "Aguardando API..."
             sleep 3
           done
-          echo "API não subiu a tempo" && exit 1
+          echo "API NÃO SUBIU" && cat api/api.log || true && exit 1
 
+      # ==================================================
+      # WAIT FRONTEND
+      # ==================================================
       - name: Aguardar frontend subir
         run: |
           for i in {1..40}; do
@@ -94,11 +100,22 @@ jobs:
             echo "Aguardando frontend..."
             sleep 3
           done
-          echo "Frontend não subiu a tempo" && exit 1
+          echo "FRONTEND NÃO SUBIU" && cat client/client.log || true && exit 1
 
       # ==================================================
-      # E2E TESTS
+      # PLAYWRIGHT TESTS
       # ==================================================
       - name: Rodar testes E2E (Playwright)
         working-directory: tests
         run: npx playwright test
+
+      # ==================================================
+      # DEBUG (só se falhar)
+      # ==================================================
+      - name: Mostrar logs se falhar
+        if: failure()
+        run: |
+          echo "===== API LOG ====="
+          cat api/api.log || true
+          echo "===== CLIENT LOG ====="
+          cat client/client.log || true
