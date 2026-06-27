@@ -43,8 +43,8 @@ public class AuthController {
     if (service.findByEmail(userDTO.getEmail()) != null) {
       return ResponseEntity
           .status(409)
-          .body(new ErrorResponse("E-mail já está em uso", 409));
-    }
+          .body(new ErrorResponse("E-mail já cadastrado", 409));
+}
 
     User createdUser = service.createUser(userDTO.getEmail(), userDTO.getPassword());
     return ResponseEntity.ok(createdUser);
