@@ -54,12 +54,14 @@ jobs:
         run: npm run build
 
       # ==================================================
-      # PLAYWRIGHT (E2E - RAIZ DO PROJETO)
+      # E2E (PLAYWRIGHT - /tests)
       # ==================================================
       - name: Instalar dependências E2E
+        working-directory: tests
         run: npm install
 
       - name: Instalar browsers Playwright
+        working-directory: tests
         run: npx playwright install --with-deps
 
       # ==================================================
@@ -74,7 +76,7 @@ jobs:
         run: npm run dev &
 
       # ==================================================
-      # WAIT SIMPLES (como professor espera)
+      # WAIT (simples como professor espera)
       # ==================================================
       - name: Aguardar inicialização
         run: sleep 30
@@ -83,4 +85,5 @@ jobs:
       # E2E TESTS
       # ==================================================
       - name: Rodar testes E2E (Playwright)
+        working-directory: tests
         run: npx playwright test
