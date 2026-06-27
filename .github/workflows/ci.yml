@@ -69,17 +69,32 @@ jobs:
       # ==================================================
       - name: Iniciar API
         working-directory: api
-        run: ./mvnw spring-boot:run &
+        run: ./mvnw spring-boot:run > api.log 2>&1 &
 
       - name: Iniciar frontend
         working-directory: client
-        run: npm run dev &
+        run: npm run dev > client.log 2>&1 &
 
       # ==================================================
-      # WAIT (simples como professor espera)
+      # WAIT ROBUSTO (NÃO SÓ SLEEP)
       # ==================================================
-      - name: Aguardar inicialização
-        run: sleep 30
+      - name: Aguardar API subir
+        run: |
+          for i in {1..40}; do
+            curl -s http://127.0.0.1:8080 && echo "API UP!" && exit 0
+            echo "Aguardando API..."
+            sleep 3
+          done
+          echo "API não subiu a tempo" && exit 1
+
+      - name: Aguardar frontend subir
+        run: |
+          for i in {1..40}; do
+            curl -s http://localhost:3000 && echo "FRONTEND UP!" && exit 0
+            echo "Aguardando frontend..."
+            sleep 3
+          done
+          echo "Frontend não subiu a tempo" && exit 1
 
       # ==================================================
       # E2E TESTS
